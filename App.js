@@ -1,23 +1,35 @@
 import Animated, {
   useSharedValue,
-  withTiming,
+  withSpring,
   useAnimatedStyle,
   Easing,
+  useAnimatedGestureHandler,
+  measure,
+  useAnimatedRef,
 } from 'react-native-reanimated';
 import {View, Button} from 'react-native';
+import {PanGestureHandler} from 'react-native-gesture-handler';
 import React from 'react';
 
 export default function AnimatedStyleUpdateExample(props) {
-  const randomWidth = useSharedValue(10);
+  const randomWidth = useSharedValue(50);
+  const aref = useAnimatedRef();
 
-  const config = {
-    duration: 500,
-    easing: Easing.bezier(0.5, 0.01, 0, 1),
-  };
+  const gestureHandler = useAnimatedGestureHandler({
+    onStart: (_, ctx) => {
+      ctx.width = measure(aref).width;
+    },
+    onActive: (event, ctx) => {
+      randomWidth.value = ctx.width + event.translationX;
+    },
+    onEnd: (_) => {
+      randomWidth.value = withSpring(50);
+    },
+  });
 
   const style = useAnimatedStyle(() => {
     return {
-      width: withTiming(randomWidth.value, config),
+      width: randomWidth.value,
     };
   });
 
@@ -27,17 +39,38 @@ export default function AnimatedStyleUpdateExample(props) {
         flex: 1,
         flexDirection: 'column',
       }}>
+      <PanGestureHandler onGestureEvent={gestureHandler}>
+        <Animated.View
+          ref={aref}
+          style={[
+            {
+              height: 80,
+              backgroundColor: 'black',
+              margin: 30,
+            },
+            style,
+          ]}
+        />
+      </PanGestureHandler>
       <Animated.View
         style={[
-          {width: 100, height: 80, backgroundColor: 'black', margin: 30},
+          {
+            height: 80,
+            backgroundColor: 'black',
+            margin: 30,
+          },
           style,
         ]}
       />
-      <Button
-        title="toggle"
-        onPress={() => {
-          randomWidth.value = Math.random() * 350;
-        }}
+      <Animated.View
+        style={[
+          {
+            height: 80,
+            backgroundColor: 'black',
+            margin: 30,
+          },
+          style,
+        ]}
       />
     </View>
   );
