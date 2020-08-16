@@ -2,34 +2,55 @@ import Animated, {
   useSharedValue,
   withSpring,
   useAnimatedStyle,
-  Easing,
   useAnimatedGestureHandler,
   measure,
   useAnimatedRef,
 } from 'react-native-reanimated';
-import {View, Button} from 'react-native';
+import {View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 import React from 'react';
 
+const Boop = ({width}) => {
+  const style = useAnimatedStyle(() => {
+    return {
+      width: width.value,
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[
+        {
+          height: 80,
+          backgroundColor: 'black',
+          margin: 30,
+        },
+        style,
+      ]}
+    />
+  );
+};
+
 export default function AnimatedStyleUpdateExample(props) {
-  const randomWidth = useSharedValue(50);
+  const width = useSharedValue(50);
   const aref = useAnimatedRef();
 
   const gestureHandler = useAnimatedGestureHandler({
     onStart: (_, ctx) => {
-      ctx.width = measure(aref).width;
+      const measuredWidth = measure(aref).width;
+      ctx.width = measuredWidth;
     },
     onActive: (event, ctx) => {
-      randomWidth.value = ctx.width + event.translationX;
+      width.value = ctx.width + event.translationX;
     },
     onEnd: (_) => {
-      randomWidth.value = withSpring(50);
+      width.value = withSpring(50);
     },
   });
 
   const style = useAnimatedStyle(() => {
     return {
-      width: randomWidth.value,
+      width: width.value,
     };
   });
 
@@ -52,26 +73,8 @@ export default function AnimatedStyleUpdateExample(props) {
           ]}
         />
       </PanGestureHandler>
-      <Animated.View
-        style={[
-          {
-            height: 80,
-            backgroundColor: 'black',
-            margin: 30,
-          },
-          style,
-        ]}
-      />
-      <Animated.View
-        style={[
-          {
-            height: 80,
-            backgroundColor: 'black',
-            margin: 30,
-          },
-          style,
-        ]}
-      />
+      <Boop width={width} />
+      <Boop width={width} />
     </View>
   );
 }
