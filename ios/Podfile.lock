@@ -298,6 +298,8 @@ PODS:
     - React-Core (= 0.63.1)
     - React-cxxreact (= 0.63.1)
     - React-jsi (= 0.63.1)
+  - RNCMaskedView (0.1.10):
+    - React
   - RNGestureHandler (1.7.0):
     - React
   - RNReanimated (2.0.0-alpha.5):
@@ -381,6 +383,7 @@ DEPENDENCIES:
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -453,6 +456,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Vibration"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNCMaskedView:
+    :path: "../node_modules/@react-native-community/masked-view"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNReanimated:
@@ -498,6 +503,7 @@ SPEC CHECKSUMS:
   React-RCTText: 4f95d322b7e6da72817284abf8a2cdcec18b9cd8
   React-RCTVibration: f3a9123c244f35c40d3c9f3ec3f0b9e5717bb292
   ReactCommon: 2905859f84a94a381bb0d8dd3921ccb1a0047cb8
+  RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
   RNGestureHandler: b6b359bb800ae399a9c8b27032bdbf7c18f08a08
   RNReanimated: 3102d38b44e1f2ff300aeb28a770dce02bfeee9e
   Yoga: d5bd05a2b6b94c52323745c2c2b64557c8c66f64

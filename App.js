@@ -5,52 +5,65 @@ import Animated, {
   useAnimatedGestureHandler,
   measure,
   useAnimatedRef,
+  interpolate,
+  Extrapolate,
 } from 'react-native-reanimated';
-import {View} from 'react-native';
-import {PanGestureHandler} from 'react-native-gesture-handler';
+import {View, Text, Dimensions} from 'react-native';
+import {
+  PanGestureHandler,
+  TapGestureHandler,
+} from 'react-native-gesture-handler';
 import React from 'react';
+import MaskedView from '@react-native-community/masked-view';
 
-const Boop = ({width}) => {
+export default function AnimatedStyleUpdateExample(props) {
+  const scaleX = useSharedValue(1);
+  const scaleY = useSharedValue(1);
+  const aref = useAnimatedRef();
+
+  const dimensions = Dimensions.get('window');
+
+  const gestureHandler = useAnimatedGestureHandler({
+    onStart: (ctx) => {
+      ctx.dimensions = measure(aref);
+    },
+    onActive: (ctx) => {
+      scaleX.value = withSpring(dimensions.width / ctx.dimensions.width, {
+        // overshootClamping: true,
+      });
+      scaleY.value = withSpring(dimensions.height / ctx.dimensions.height, {
+        // overshootClamping: true,
+      });
+    },
+    onEnd: (_) => {},
+  });
+
   const style = useAnimatedStyle(() => {
     return {
-      width: width.value,
+      transform: [
+        {
+          scaleX: interpolate(
+            scaleX.value,
+            [1, 200],
+            [1, 200],
+            Extrapolate.CLAMP,
+          ),
+        },
+        {
+          scaleY: interpolate(
+            scaleY.value,
+            [1, 200],
+            [1, 200],
+            Extrapolate.CLAMP,
+          ),
+        },
+      ],
     };
   });
 
-  return (
-    <Animated.View
-      style={[
-        {
-          height: 80,
-          backgroundColor: 'black',
-          margin: 30,
-        },
-        style,
-      ]}
-    />
-  );
-};
-
-export default function AnimatedStyleUpdateExample(props) {
-  const width = useSharedValue(50);
-  const aref = useAnimatedRef();
-
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: (_, ctx) => {
-      const measuredWidth = measure(aref).width;
-      ctx.width = measuredWidth;
-    },
-    onActive: (event, ctx) => {
-      width.value = ctx.width + event.translationX;
-    },
-    onEnd: (_) => {
-      width.value = withSpring(50);
-    },
-  });
-
-  const style = useAnimatedStyle(() => {
+  const textStyle = useAnimatedStyle(() => {
     return {
-      width: width.value,
+      opacity: interpolate(scaleX.value, [1, 2], [0, 1], Extrapolate.CLAMP),
     };
   });
 
@@ -60,21 +73,52 @@ export default function AnimatedStyleUpdateExample(props) {
         flex: 1,
         flexDirection: 'column',
       }}>
-      <PanGestureHandler onGestureEvent={gestureHandler}>
-        <Animated.View
-          ref={aref}
-          style={[
-            {
-              height: 80,
-              backgroundColor: 'black',
-              margin: 30,
-            },
-            style,
-          ]}
-        />
-      </PanGestureHandler>
-      <Boop width={width} />
-      <Boop width={width} />
+      <MaskedView
+        style={{flex: 1, flexDirection: 'row', height: '100%'}}
+        maskElement={
+          <View
+            style={{
+              backgroundColor: 'transparent',
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Animated.View
+              ref={aref}
+              style={[
+                {
+                  backgroundColor: 'black',
+                  width: 50,
+                  height: 50,
+                },
+                style,
+              ]}
+            />
+          </View>
+        }>
+        <TapGestureHandler onGestureEvent={gestureHandler}>
+          <Animated.View
+            style={[
+              {
+                flex: 1,
+                backgroundColor: 'tomato',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+            ]}>
+            <Animated.Text
+              style={[
+                {
+                  color: '#000',
+                  fontSize: 60,
+                },
+                textStyle,
+              ]}>
+              HELLO BABY
+            </Animated.Text>
+          </Animated.View>
+        </TapGestureHandler>
+      </MaskedView>
     </View>
   );
 }
