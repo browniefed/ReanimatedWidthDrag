@@ -7,8 +7,9 @@ import Animated, {
   useAnimatedRef,
   interpolate,
   Extrapolate,
+  withTiming,
 } from 'react-native-reanimated';
-import {View, Text, Dimensions} from 'react-native';
+import {View, Text, Dimensions, Image} from 'react-native';
 import {
   PanGestureHandler,
   TapGestureHandler,
@@ -16,54 +17,55 @@ import {
 import React from 'react';
 import MaskedView from '@react-native-community/masked-view';
 
-export default function AnimatedStyleUpdateExample(props) {
-  const scaleX = useSharedValue(1);
-  const scaleY = useSharedValue(1);
-  const aref = useAnimatedRef();
+import Trash from './trashcan.png';
 
-  const dimensions = Dimensions.get('window');
+export default function AnimatedStyleUpdateExample(props) {
+  const trashRef = useAnimatedRef();
+  const fromRef = useAnimatedRef();
+
+  const move = useSharedValue({x: 0, y: 0});
+  const scaleValue = useSharedValue(0);
 
   const gestureHandler = useAnimatedGestureHandler({
-    onStart: (ctx) => {
-      ctx.dimensions = measure(aref);
+    onStart: (event, ctx) => {
+      ctx.to = measure(trashRef);
+      ctx.from = measure(fromRef);
     },
-    onActive: (ctx) => {
-      scaleX.value = withSpring(dimensions.width / ctx.dimensions.width, {
-        // overshootClamping: true,
-      });
-      scaleY.value = withSpring(dimensions.height / ctx.dimensions.height, {
-        // overshootClamping: true,
-      });
+    onEnd: (event, context) => {
+      const y = context.from.y * -1 + context.to.height;
+      scaleValue.value = context.from.y * -1 + context.to.height;
+
+      move.value = {
+        x: context.to.x - context.from.x - context.to.width / 4,
+        y: context.from.y * -1 + context.to.height,
+      };
     },
-    onEnd: (_) => {},
   });
 
   const style = useAnimatedStyle(() => {
     return {
       transform: [
         {
-          scaleX: interpolate(
-            scaleX.value,
-            [1, 200],
-            [1, 200],
-            Extrapolate.CLAMP,
-          ),
+          translateX: withTiming(move.value.x, {
+            duration: 300,
+          }),
         },
         {
-          scaleY: interpolate(
-            scaleY.value,
-            [1, 200],
-            [1, 200],
-            Extrapolate.CLAMP,
+          translateY: withTiming(move.value.y, {
+            duration: 200,
+          }),
+        },
+        {
+          scale: withSpring(
+            interpolate(
+              move.value.y,
+              [0, scaleValue.value + 10, scaleValue.value],
+              [1, 0.2, 0],
+              Extrapolate.CLAMP,
+            ),
           ),
         },
       ],
-    };
-  });
-
-  const textStyle = useAnimatedStyle(() => {
-    return {
-      opacity: interpolate(scaleX.value, [1, 2], [0, 1], Extrapolate.CLAMP),
     };
   });
 
@@ -73,52 +75,34 @@ export default function AnimatedStyleUpdateExample(props) {
         flex: 1,
         flexDirection: 'column',
       }}>
-      <MaskedView
-        style={{flex: 1, flexDirection: 'row', height: '100%'}}
-        maskElement={
-          <View
-            style={{
-              backgroundColor: 'transparent',
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <Animated.View
-              ref={aref}
-              style={[
-                {
-                  backgroundColor: 'black',
-                  width: 50,
-                  height: 50,
-                },
-                style,
-              ]}
-            />
-          </View>
-        }>
-        <TapGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View
+      <Animated.Image
+        ref={trashRef}
+        source={Trash}
+        style={{
+          position: 'absolute',
+          top: 40,
+          right: 20,
+        }}
+      />
+      <TapGestureHandler onGestureEvent={gestureHandler}>
+        <Animated.View
+          ref={fromRef}
+          style={[
+            {
+              position: 'absolute',
+              bottom: 40,
+              left: 20,
+            },
+          ]}>
+          <Animated.Text
             style={[
-              {
-                flex: 1,
-                backgroundColor: 'tomato',
-                alignItems: 'center',
-                justifyContent: 'center',
-              },
+              {color: '#FFF', backgroundColor: 'tomato', padding: 5},
+              style,
             ]}>
-            <Animated.Text
-              style={[
-                {
-                  color: '#000',
-                  fontSize: 60,
-                },
-                textStyle,
-              ]}>
-              HELLO BABY
-            </Animated.Text>
-          </Animated.View>
-        </TapGestureHandler>
-      </MaskedView>
+            Go To Trash
+          </Animated.Text>
+        </Animated.View>
+      </TapGestureHandler>
     </View>
   );
 }
